@@ -15,10 +15,12 @@ app.get("/", (req, res) => {
 });
 
 app.post("/register", async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password,role } = req.body;
+  console.log(role)
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new UserSchema({ username, email, password: hashedPassword });
+    const user = new UserSchema({ username, email,role , password: hashedPassword});
+    console.log(user)
     await user.save();
     res.json({ message: "User Registered" });
     console.log("User Registration completed...");
@@ -42,6 +44,19 @@ app.post("/login", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+app.get("/user/email/:email", async (req, res) => {
+  try {
+    const user = await UserSchema.findOne({ email: req.params.email }).select("-password -__v");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
 
 mongoose
   .connect(
@@ -56,3 +71,5 @@ app.listen(PORT, (err) => {
   }
   console.log("Server is running on port :" + PORT);
 });
+
+
